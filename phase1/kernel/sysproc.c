@@ -5,6 +5,7 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
+#include "console.h"
 
 uint64
 sys_exit(void)
@@ -88,4 +89,28 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}
+
+uint64
+sys_top(void)
+{
+    struct top *utop;
+    struct top ktop;
+    argaddr(0, (uint64 *)&utop);
+    struct proc *p = myproc();
+    copyin(p->pagetable, (char*)&ktop, (uint64)utop, sizeof(ktop));
+    int err = top(&ktop);
+    copyout(p->pagetable, (uint64)utop, (char*)&ktop, sizeof(ktop));
+    return err;
+}
+
+uint64
+sys_history(void)
+{
+  int historyid;
+
+  argint(0, &historyid);
+  int err = history(historyid);
+  
+  return err;
 }

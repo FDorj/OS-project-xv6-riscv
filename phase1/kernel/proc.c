@@ -5,6 +5,8 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "defs.h"
+#include "sysproc.h"
+#include "riscv.h"
 
 struct cpu cpus[NCPU];
 
@@ -680,4 +682,42 @@ procdump(void)
     printf("%d %s %s", p->pid, state, p->name);
     printf("\n");
   }
+}
+
+int
+top(struct top* t)
+{
+    struct proc *p;
+    int total_process = 0;
+    int sleeping_process = 0;
+    int running_process = 0;
+    int i = 0;
+    for(p = proc; p < &proc[NPROC]; p++) {
+        if(p->state != UNUSED){
+            total_process++;
+            if(p->state == SLEEPING ) {
+                sleeping_process++;
+            } else if(p->state == RUNNING ){
+                running_process++;
+            }
+        }else{
+          continue;
+        }
+        strncpy(t->p_list[i].name, p->name, 16);
+        t->p_list[i].pid = p->pid;
+        if(p->parent != 0) {
+          struct proc *pa = p->parent;
+          t->p_list[i].ppid = pa->pid;
+        } else {
+        t->p_list[i].ppid = -1; // or some other invalid PID value
+        }
+        t->p_list[i].state = p->state;
+        i++;
+
+    }
+    t->uptime = (long)(sys_uptime())/10;  //sys_uptime return clocks and each clock is 1/10 second
+    t->total_process = total_process;
+    t->running_process = running_process;
+    t->sleeping_process = sleeping_process;
+    return 0;
 }
