@@ -1,3 +1,5 @@
+#include "kernel/types.h"
+struct top;
 struct stat;
 
 // system calls
@@ -22,6 +24,8 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+int top(struct top*);
+int history(int);
 
 // ulib.c
 int stat(const char*, struct stat*);
